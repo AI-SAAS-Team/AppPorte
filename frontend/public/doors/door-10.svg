@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="560" viewBox="0 0 400 560">
+  <rect width="400" height="560" fill="#e8e4dc"/>
+  <rect x="60" y="40" width="280" height="480" rx="6" fill="#2c2c2c" stroke="#00000022" stroke-width="2"/>
+  <rect x="90" y="80" width="100" height="190" rx="4" fill="#1a1a1a"/>
+  <rect x="210" y="80" width="100" height="190" rx="4" fill="#1a1a1a"/>
+  <rect x="90" y="300" width="100" height="170" rx="4" fill="#1a1a1a"/>
+  <rect x="210" y="300" width="100" height="170" rx="4" fill="#1a1a1a"/>
+  <rect x="300" y="270" width="14" height="60" rx="7" fill="#8a8f94"/>
+  <rect x="0" y="520" width="400" height="40" fill="#cfc9bd"/>
+  <text x="200" y="546" font-family="Segoe UI, Arial, sans-serif" font-size="18"
+        font-weight="600" fill="#3a342b" text-anchor="middle">10. Acier industriel</text>
+</svg>
