@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:firebase": "cross-env STATIC_EXPORT=1 NEXT_PUBLIC_API_URL=https://appporte-production.up.railway.app next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -18,6 +19,7 @@
     "@types/node": "22.10.7",
     "@types/react": "19.0.7",
     "@types/react-dom": "19.0.3",
+    "cross-env": "^10.1.0",
     "tailwindcss": "^4.3.1",
     "typescript": "5.7.3"
   }
