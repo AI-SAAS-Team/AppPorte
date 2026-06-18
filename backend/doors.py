@@ -51,47 +51,51 @@ DOORS = [
     },
     {
         "id": "door-4",
-        "name": "Rouge bordeaux à panneaux",
+        "name": "Anthracite vitrage diagonal",
         "prompt": (
-            "a traditional panelled entry door painted deep bordeaux red, "
-            "glossy finish, four moulded panels, polished brass furniture and "
-            "a central round knob"
+            "a modern anthracite grey (RAL 7016) aluminium entry door, smooth "
+            "matte finish, with a large dramatic diagonal/triangular frosted "
+            "glass panel crossed by horizontal stainless steel strips on the "
+            "left side, and a long vertical brushed steel bar handle on the right"
         ),
     },
     {
         "id": "door-5",
-        "name": "Bleu pastel campagne",
+        "name": "Double porte anthracite",
         "prompt": (
-            "a charming country-style entry door painted soft pastel blue, "
-            "vertical tongue-and-groove planks, small four-pane window at the "
-            "top, wrought iron handle"
+            "a modern double-leaf (two equal panels) anthracite grey entry "
+            "door, smooth matte finish, with horizontal stainless steel inlay "
+            "strips across both leaves, and two long vertical brushed steel bar "
+            "handles meeting at the centre"
         ),
     },
     {
         "id": "door-6",
-        "name": "Aluminium noir design",
+        "name": "Chêne clair vitrage vertical",
         "prompt": (
-            "a high-end designer aluminium entry door in matte black, smooth "
-            "monolithic surface, a single full-height stainless steel vertical "
-            "handle, hidden hinges"
+            "a contemporary light oak wood entry door with horizontal wood "
+            "planks, a tall narrow vertical frosted glass strip on the right, "
+            "and a rectangular brushed stainless steel letter-plate on the left"
         ),
     },
     {
         "id": "door-7",
-        "name": "Bois clair scandinave",
+        "name": "Anthracite vitrage horizontal",
         "prompt": (
-            "a Scandinavian style entry door in light natural pine, clean flat "
-            "surface, one square frosted glass window, minimalist black round "
-            "knob"
+            "a modern anthracite grey entry door, smooth matte finish, with "
+            "frosted glass panes divided by horizontal stainless steel strips "
+            "on the left half, and a long vertical brushed steel bar handle on "
+            "the right"
         ),
     },
     {
         "id": "door-8",
-        "name": "Verte forêt cottage",
+        "name": "Noyer foncé vitré inox",
         "prompt": (
-            "a cottage entry door painted forest green, four panels with the "
-            "top two glazed with small clear panes, antique bronze handle and "
-            "knocker"
+            "a modern dark walnut (wenge) wood entry door with a brushed "
+            "stainless steel kickplate at the bottom, a central frosted glass "
+            "panel crossed by four horizontal steel strips, and a lever handle "
+            "plus a long vertical bar handle on the left"
         ),
     },
     {
