@@ -14,7 +14,9 @@ Le modèle renvoie une image inline (base64) que l'on relit côté backend.
 from __future__ import annotations
 
 import base64
+import json as _json
 import os
+import re as _re
 from pathlib import Path
 from typing import Optional
 
@@ -143,6 +145,74 @@ async def generate_door_image(
         )
 
     return _extract_image(resp)
+
+
+async def detect_door_bbox(
+    user_image: bytes,
+    user_image_mime: str,
+    img_w: int,
+    img_h: int,
+) -> Optional[dict[str, int]]:
+    """Localise la porte dans la photo via Gemini Flash (réponse texte seulement).
+
+    Retourne {"x1": int, "y1": int, "x2": int, "y2": int} en pixels, ou None.
+    """
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return None
+
+    prompt = (
+        f"Image size: {img_w}x{img_h} pixels.\n"
+        "Find the main front entrance door in this building photo.\n"
+        "Return ONLY valid JSON (no other text):\n"
+        '{"x1": <left_px>, "y1": <top_px>, "x2": <right_px>, "y2": <bottom_px>}\n'
+        "Values are pixel coordinates of the door leaf bounding box "
+        "(the door itself, not the surrounding frame or wall)."
+    )
+
+    parts = [
+        {"text": prompt},
+        _bytes_to_part(user_image, user_image_mime),
+    ]
+
+    detection_model = os.getenv("GEMINI_DETECTION_MODEL", "gemini-2.0-flash")
+    payload = {
+        "contents": [{"role": "user", "parts": parts}],
+        "generationConfig": {"responseModalities": ["TEXT"]},
+    }
+    url = f"{API_BASE}/models/{detection_model}:generateContent"
+    headers = {"x-goog-api-key": api_key, "Content-Type": "application/json"}
+
+    try:
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            resp = await client.post(url, json=payload, headers=headers)
+        if resp.status_code != 200:
+            return None
+        data = resp.json()
+        candidates = data.get("candidates") or []
+        if not candidates:
+            return None
+        text = candidates[0]["content"]["parts"][0]["text"]
+
+        match = _re.search(r"\{[^{}]+\}", text)
+        if not match:
+            return None
+        bbox = _json.loads(match.group())
+
+        if not all(k in bbox for k in ("x1", "y1", "x2", "y2")):
+            return None
+
+        result = {k: int(float(bbox[k])) for k in ("x1", "y1", "x2", "y2")}
+
+        if result["x2"] <= result["x1"] or result["y2"] <= result["y1"]:
+            return None
+        door_area = (result["x2"] - result["x1"]) * (result["y2"] - result["y1"])
+        if door_area < 0.01 * img_w * img_h:
+            return None
+
+        return result
+    except Exception:
+        return None
 
 
 def _extract_error_message(resp: httpx.Response) -> str:

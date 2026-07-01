@@ -12,6 +12,7 @@ from __future__ import annotations
 import base64
 import io
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
@@ -20,7 +21,7 @@ from fastapi.responses import JSONResponse
 from PIL import Image, UnidentifiedImageError
 
 from doors import DOORS, get_door, get_reference_image
-from gemini import GeminiError, generate_door_image
+from gemini import GeminiError, detect_door_bbox, generate_door_image
 
 load_dotenv()
 
@@ -148,6 +149,95 @@ def _composite_changed_region(
     return out.getvalue(), "image/png"
 
 
+def _remove_light_background(ref: Image.Image) -> Image.Image:
+    """Supprime le fond clair/blanc d'une image de porte de référence.
+
+    Si l'image a déjà de la transparence (alpha existant), on la conserve.
+    Sinon on détecte le fond par échantillonnage des coins et seuillage.
+    """
+    import numpy as np
+
+    ref = ref.convert("RGBA")
+    arr = np.array(ref)
+
+    # Si l'alpha existant contient déjà de la transparence, on garde
+    if arr[:, :, 3].min() < 200:
+        return ref
+
+    h, w = arr.shape[:2]
+    patch = max(3, min(10, h // 20, w // 20))
+    corners = [
+        arr[:patch, :patch, :3],
+        arr[:patch, w - patch:, :3],
+        arr[h - patch:, :patch, :3],
+        arr[h - patch:, w - patch:, :3],
+    ]
+    bg_color = (
+        np.concatenate([c.reshape(-1, 3) for c in corners], axis=0)
+        .mean(axis=0)
+        .astype(np.float32)
+    )
+
+    diff = np.abs(arr[:, :, :3].astype(np.float32) - bg_color).max(axis=2)
+    arr[:, :, 3] = np.where(diff < 35, 0, 255).astype(np.uint8)
+    return Image.fromarray(arr)
+
+
+def _composite_reference_door(
+    original_bytes: bytes,
+    reference_path: Path,
+    bbox: dict[str, int],
+) -> tuple[bytes, str]:
+    """Colle directement l'image de référence sur la photo originale.
+
+    - Redimensionne la porte de référence aux dimensions de la porte détectée.
+    - Supprime le fond clair.
+    - Ajuste légèrement la luminosité pour coller à l'ambiance lumineuse de la scène.
+    - Composite avec un bord légèrement fondu.
+    """
+    import numpy as np
+    from PIL import ImageFilter
+
+    orig = Image.open(io.BytesIO(original_bytes)).convert("RGB")
+    ref = Image.open(reference_path)
+
+    x1 = max(0, min(bbox["x1"], orig.width - 2))
+    y1 = max(0, min(bbox["y1"], orig.height - 2))
+    x2 = max(x1 + 2, min(bbox["x2"], orig.width))
+    y2 = max(y1 + 2, min(bbox["y2"], orig.height))
+    door_w, door_h = x2 - x1, y2 - y1
+
+    ref_clean = _remove_light_background(ref)
+    ref_resized = ref_clean.resize((door_w, door_h), Image.LANCZOS)
+
+    ref_arr = np.array(ref_resized)
+    alpha = ref_arr[:, :, 3]
+    door_rgb = ref_arr[:, :, :3].astype(np.float32)
+
+    # Correction de luminosité : on aligne la porte sur la scène
+    orig_arr = np.array(orig)
+    scene_region = orig_arr[y1:y2, x1:x2]
+    scene_mean = float(scene_region.mean())
+    visible = alpha > 128
+    if visible.any():
+        ref_mean = float(door_rgb[visible].mean())
+        if ref_mean > 5:
+            factor = min(max(scene_mean / ref_mean, 0.4), 2.2)
+            door_rgb = np.clip(door_rgb * factor, 0, 255)
+
+    ref_arr[:, :, :3] = door_rgb.astype(np.uint8)
+
+    alpha_img = Image.fromarray(alpha, "L").filter(ImageFilter.GaussianBlur(1.5))
+    door_layer = Image.fromarray(ref_arr, "RGBA")
+
+    result = orig.convert("RGBA")
+    result.paste(door_layer, (x1, y1), alpha_img)
+
+    out = io.BytesIO()
+    result.convert("RGB").save(out, format="PNG")
+    return out.getvalue(), "image/png"
+
+
 @app.post("/generate")
 async def generate(
     file: UploadFile = File(...),
@@ -174,19 +264,35 @@ async def generate(
 
     user_image, user_mime = _normalize_image(raw)
 
+    ref_path = get_reference_image(door_id)
+
+    # Étape 1 : détection de la porte + compositing direct de l'image de référence.
+    # C'est la voie prioritaire : elle reproduit la porte du catalogue à l'identique.
+    if ref_path is not None:
+        try:
+            orig_img = Image.open(io.BytesIO(user_image))
+            img_w, img_h = orig_img.size
+            bbox = await detect_door_bbox(user_image, user_mime, img_w, img_h)
+            if bbox is not None:
+                image_bytes, mime = _composite_reference_door(user_image, ref_path, bbox)
+                data_url = f"data:{mime};base64,{base64.b64encode(image_bytes).decode('ascii')}"
+                return JSONResponse({"image": data_url, "door": {"id": door["id"], "name": door["name"]}})
+        except Exception:
+            pass  # Échec silencieux → on continue vers Gemini
+
+    # Étape 2 (fallback) : génération par Gemini si la détection a échoué
+    # ou si aucune image de référence n'existe pour ce modèle.
     try:
         image_bytes, mime = await generate_door_image(
             user_image=user_image,
             user_image_mime=user_mime,
             door_name=door["name"],
             door_prompt=door["prompt"],
-            reference_image=get_reference_image(door_id),
+            reference_image=ref_path,
         )
     except GeminiError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.message)
 
-    # On ne garde de l'image IA que la zone réellement modifiée (la porte) et
-    # on conserve le reste de la photo d'origine au pixel près.
     image_bytes, mime = _composite_changed_region(user_image, image_bytes)
 
     data_url = f"data:{mime};base64,{base64.b64encode(image_bytes).decode('ascii')}"
