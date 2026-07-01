@@ -9,19 +9,14 @@ export type Door = {
 };
 
 export const DOORS: Door[] = [
-  { id: "door-1", name: "Anthracite vitrage latéral", preview: "/doors/door-1.jpg" },
-  { id: "door-2", name: "Anthracite à rainures", preview: "/doors/door-2.jpg" },
-  { id: "door-3", name: "Blanche lignes horizontales", preview: "/doors/door-3.jpg" },
+  { id: "door-1", name: "Gris vitrage dépoli lignes", preview: "/doors/door-1.png" },
+  { id: "door-2", name: "Double porte noire diagonale", preview: "/doors/door-2.webp" },
+  { id: "door-3", name: "Noire bandes vitrées", preview: "/doors/door-3.jpg" },
   { id: "door-4", name: "Anthracite vitrage diagonal", preview: "/doors/door-4.jpg" },
   { id: "door-5", name: "Double porte anthracite", preview: "/doors/door-5.jpg" },
   { id: "door-6", name: "Chêne clair vitrage vertical", preview: "/doors/door-6.jpg" },
   { id: "door-7", name: "Anthracite vitrage horizontal", preview: "/doors/door-7.jpg" },
   { id: "door-8", name: "Noyer foncé vitré inox", preview: "/doors/door-8.jpg" },
-  { id: "door-9", name: "Blanche moderne lisse", preview: "/doors/door-9.svg" },
-  { id: "door-10", name: "Acier industriel verrière", preview: "/doors/door-10.svg" },
-  { id: "door-11", name: "Noyer foncé à rainures", preview: "/doors/door-11.svg" },
-  { id: "door-12", name: "Art déco vitrail", preview: "/doors/door-12.svg" },
-  { id: "door-13", name: "Gris béton mat", preview: "/doors/door-13.svg" },
-  { id: "door-14", name: "Bois & verre demi-lune", preview: "/doors/door-14.svg" },
-  { id: "door-15", name: "Jaune moutarde rétro", preview: "/doors/door-15.svg" },
+  { id: "door-9", name: "Aluminium gris & beige", preview: "/doors/door-9.jpg" },
+  { id: "door-10", name: "Anthracite impostes vitrées", preview: "/doors/door-10.jpg" },
 ];

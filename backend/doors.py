@@ -22,31 +22,34 @@ ASSETS_DIR = Path(__file__).parent / "assets"
 DOORS = [
     {
         "id": "door-1",
-        "name": "Anthracite vitrage latéral",
+        "name": "Gris vitrage dépoli lignes",
         "prompt": (
-            "a modern anthracite grey (RAL 7016) aluminium entry door with a "
-            "smooth matte finish and subtle horizontal grooved lines, a tall "
-            "narrow vertical frosted glass strip on the right side, a brushed "
-            "stainless steel lever handle on the left"
+            "a modern grey aluminium entry door with a smooth matte finish, "
+            "a large full-height frosted glass panel covering most of the door "
+            "surface, with delicate vertical etched lines decorating the glass, "
+            "and a long vertical brushed stainless steel bar handle on the left"
         ),
     },
     {
         "id": "door-2",
-        "name": "Anthracite à rainures",
+        "name": "Double porte noire diagonale",
         "prompt": (
-            "a modern anthracite grey (RAL 7016) entry door with full-width "
-            "horizontal grooved slats across the surface, smooth matte finish, "
-            "a brushed steel lever handle on the left, and a discreet "
-            "ventilation grille at the bottom"
+            "a modern double-leaf entry door with a dark grey aluminium frame, "
+            "both leaves finished in matte black with a bold diagonal triangular "
+            "design element, multiple horizontal stainless steel inlay strips "
+            "across both panels, and two lever handles with a digital lock in "
+            "the centre"
         ),
     },
     {
         "id": "door-3",
-        "name": "Blanche lignes horizontales",
+        "name": "Noire bandes vitrées",
         "prompt": (
-            "a clean modern white entry door with a framed raised panel and "
-            "four thin horizontal brushed-metal and frosted glass inlay "
-            "strips, smooth finish, a satin steel lever handle on the right"
+            "a contemporary matte black entry door with a smooth finish, "
+            "featuring multiple narrow horizontal frosted glass strips evenly "
+            "spaced across the full width of the door, a narrow vertical frosted "
+            "glass strip on the left side, and a brushed steel lever handle on "
+            "the left"
         ),
     },
     {
@@ -100,20 +103,23 @@ DOORS = [
     },
     {
         "id": "door-9",
-        "name": "Blanche moderne lisse",
+        "name": "Aluminium gris & beige",
         "prompt": (
-            "a clean modern entry door in smooth pure white, completely flat "
-            "flush surface, a long brushed nickel vertical bar handle, "
-            "contemporary look"
+            "a modern aluminium entry door with a brushed silver-grey frame and "
+            "a two-tone face: on the left a vertical frosted glass strip crossed "
+            "by horizontal stainless steel bars, on the right a large cream/beige "
+            "panel divided by thin horizontal grooves, with a distinctive curved "
+            "brushed steel lever handle in the centre"
         ),
     },
     {
         "id": "door-10",
-        "name": "Acier industriel verrière",
+        "name": "Anthracite impostes vitrées",
         "prompt": (
-            "an industrial style steel entry door, black metal frame divided "
-            "into a grid of clear glass panes like a factory window, riveted "
-            "details, matte black tubular handle"
+            "a modern anthracite grey aluminium entry door flanked by two "
+            "frosted glass sidelights, the central leaf crossed by horizontal "
+            "stainless steel strips, with a long vertical brushed steel bar "
+            "handle"
         ),
     },
     {

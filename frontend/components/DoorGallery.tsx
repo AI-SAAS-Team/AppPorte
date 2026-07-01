@@ -23,12 +23,12 @@ export default function DoorGallery({ selectedId, onSelect }: Props) {
                 : "border-stone-200 hover:border-stone-400"
             }`}
           >
-            <div className="relative aspect-[5/7] bg-stone-100">
+            <div className="relative aspect-[5/7] overflow-hidden bg-stone-100">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={door.preview}
                 alt={door.name}
-                className="h-full w-full object-cover"
+                className="absolute inset-0 h-full w-full object-cover"
               />
               {selected && (
                 <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-white">
