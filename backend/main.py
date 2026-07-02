@@ -219,13 +219,12 @@ def _composite_reference_door(
 ) -> tuple[bytes, str]:
     """Colle directement l'image de référence sur la photo originale.
 
-    - Redimensionne la porte de référence aux dimensions de la porte détectée.
-    - Supprime le fond clair.
-    - Ajuste légèrement la luminosité pour coller à l'ambiance lumineuse de la scène.
-    - Composite avec un bord légèrement fondu.
+    Les pixels de fond (transparents après suppression du fond blanc) sont
+    remplacés par la couleur du mur prélevée autour de la porte — l'ancienne
+    porte ne transparaît plus du tout. On colle ensuite le patch en dur dans
+    la zone détectée, avec un léger fondu sur les 4 bords pour la jonction.
     """
     import numpy as np
-    from PIL import ImageFilter
 
     orig = Image.open(io.BytesIO(original_bytes)).convert("RGB")
     ref = Image.open(reference_path)
@@ -243,27 +242,60 @@ def _composite_reference_door(
     alpha = ref_arr[:, :, 3]
     door_rgb = ref_arr[:, :, :3].astype(np.float32)
 
-    # Correction de luminosité : on aligne la porte sur la scène
     orig_arr = np.array(orig)
-    scene_region = orig_arr[y1:y2, x1:x2]
-    scene_mean = float(scene_region.mean())
-    visible = alpha > 128
+
+    # Couleur du mur : prélevée dans une bordure de 20px autour de la porte
+    margin = 20
+    patches = []
+    if y1 >= margin:
+        patches.append(orig_arr[y1 - margin:y1, x1:x2].reshape(-1, 3))
+    if y2 + margin <= orig.height:
+        patches.append(orig_arr[y2:y2 + margin, x1:x2].reshape(-1, 3))
+    if x1 >= margin:
+        patches.append(orig_arr[y1:y2, x1 - margin:x1].reshape(-1, 3))
+    if x2 + margin <= orig.width:
+        patches.append(orig_arr[y1:y2, x2:x2 + margin].reshape(-1, 3))
+    wall_color = (
+        np.concatenate(patches, axis=0).mean(axis=0).astype(np.float32)
+        if patches else np.array([180.0, 180.0, 180.0])
+    )
+
+    # Pixels de fond → couleur du mur (pas l'ancienne porte)
+    is_bg = alpha < 128
+    door_rgb[is_bg] = wall_color
+
+    # Correction de luminosité sur les pixels de la porte elle-même
+    scene_mean = float(orig_arr[y1:y2, x1:x2].mean())
+    visible = ~is_bg
     if visible.any():
         ref_mean = float(door_rgb[visible].mean())
         if ref_mean > 5:
             factor = min(max(scene_mean / ref_mean, 0.4), 2.2)
-            door_rgb = np.clip(door_rgb * factor, 0, 255)
+            door_rgb[visible] = np.clip(door_rgb[visible] * factor, 0, 255)
 
-    ref_arr[:, :, :3] = door_rgb.astype(np.uint8)
+    patch = door_rgb.astype(np.uint8)
 
-    alpha_img = Image.fromarray(alpha, "L").filter(ImageFilter.GaussianBlur(1.5))
-    door_layer = Image.fromarray(ref_arr, "RGBA")
+    # Fondu doux sur les bords du bbox (5 px) pour une jonction propre
+    feather = 5
+    blend_mask = np.ones((door_h, door_w), dtype=np.float32)
+    for i in range(feather):
+        s = (i + 1) / feather
+        blend_mask[i, :] = np.minimum(blend_mask[i, :], s)
+        blend_mask[door_h - 1 - i, :] = np.minimum(blend_mask[door_h - 1 - i, :], s)
+        blend_mask[:, i] = np.minimum(blend_mask[:, i], s)
+        blend_mask[:, door_w - 1 - i] = np.minimum(blend_mask[:, door_w - 1 - i], s)
 
-    result = orig.convert("RGBA")
-    result.paste(door_layer, (x1, y1), alpha_img)
+    orig_patch = orig_arr[y1:y2, x1:x2].astype(np.float32)
+    blended = (
+        patch.astype(np.float32) * blend_mask[:, :, np.newaxis]
+        + orig_patch * (1 - blend_mask[:, :, np.newaxis])
+    ).astype(np.uint8)
+
+    result = orig.copy()
+    result.paste(Image.fromarray(blended), (x1, y1))
 
     out = io.BytesIO()
-    result.convert("RGB").save(out, format="PNG")
+    result.save(out, format="PNG")
     return out.getvalue(), "image/png"
 
 
