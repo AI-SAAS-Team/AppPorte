@@ -150,22 +150,26 @@ def _composite_changed_region(
 
 
 def _remove_light_background(ref: Image.Image) -> Image.Image:
-    """Supprime le fond clair/blanc d'une image de porte de référence.
+    """Supprime le fond clair/blanc d'une image de porte via flood fill depuis les bords.
 
-    Si l'image a déjà de la transparence (alpha existant), on la conserve.
-    Sinon on détecte le fond par échantillonnage des coins et seuillage.
+    Contrairement à un seuillage global, le flood fill ne supprime que les pixels
+    connectés aux bords ET proches de la couleur de fond — la porte elle-même
+    (même grise ou claire) reste intacte car elle n'est pas connectée au fond.
     """
     import numpy as np
+    from collections import deque
 
     ref = ref.convert("RGBA")
     arr = np.array(ref)
 
-    # Si l'alpha existant contient déjà de la transparence, on garde
+    # Si transparence existante significative, on l'utilise directement
     if arr[:, :, 3].min() < 200:
         return ref
 
     h, w = arr.shape[:2]
-    patch = max(3, min(10, h // 20, w // 20))
+
+    # Couleur de fond estimée depuis les coins
+    patch = max(3, min(8, h // 30, w // 30))
     corners = [
         arr[:patch, :patch, :3],
         arr[:patch, w - patch:, :3],
@@ -179,7 +183,32 @@ def _remove_light_background(ref: Image.Image) -> Image.Image:
     )
 
     diff = np.abs(arr[:, :, :3].astype(np.float32) - bg_color).max(axis=2)
-    arr[:, :, 3] = np.where(diff < 35, 0, 255).astype(np.uint8)
+    tolerance = 45
+
+    # BFS depuis tous les pixels de bordure proches du fond
+    bg_mask = np.zeros((h, w), dtype=bool)
+    queue: deque = deque()
+
+    for x in range(w):
+        for y in (0, h - 1):
+            if diff[y, x] < tolerance and not bg_mask[y, x]:
+                bg_mask[y, x] = True
+                queue.append((y, x))
+    for y in range(h):
+        for x in (0, w - 1):
+            if diff[y, x] < tolerance and not bg_mask[y, x]:
+                bg_mask[y, x] = True
+                queue.append((y, x))
+
+    while queue:
+        y, x = queue.popleft()
+        for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            ny, nx = y + dy, x + dx
+            if 0 <= ny < h and 0 <= nx < w and not bg_mask[ny, nx] and diff[ny, nx] < tolerance:
+                bg_mask[ny, nx] = True
+                queue.append((ny, nx))
+
+    arr[:, :, 3] = np.where(bg_mask, 0, 255).astype(np.uint8)
     return Image.fromarray(arr)
 
 
