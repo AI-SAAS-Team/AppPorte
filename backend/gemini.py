@@ -41,8 +41,20 @@ class GeminiError(Exception):
 
 def build_prompt(door_name: str, door_prompt: str) -> str:
     return (
-        "Replace the front door in the first image with the door shown in the "
-        "second image. Keep everything else exactly the same."
+        "You are a photo editing expert. I will give you two images:\n"
+        "- Image 1: a real photo of a house or building with a front door.\n"
+        "- Image 2: a product photo of a new door on a white background.\n\n"
+        "Your task: swap the existing front door in Image 1 with the door from Image 2.\n\n"
+        "Rules:\n"
+        "1. The new door must look exactly like the door in Image 2 "
+        "(same design, color, materials, hardware).\n"
+        "2. Fit the new door into the exact same position, size and perspective "
+        "as the original door — do not move or resize the door opening.\n"
+        "3. Adapt the new door's lighting and shadows to match the scene in Image 1 "
+        "so the result looks photorealistic.\n"
+        "4. Do not change anything else: walls, windows, ground, plants, sky, "
+        "door frame — everything outside the door leaf stays pixel-perfect identical.\n\n"
+        "Output only the edited version of Image 1."
     )
 
 
