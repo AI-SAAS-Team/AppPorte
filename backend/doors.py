@@ -32,13 +32,13 @@ DOORS = [
     },
     {
         "id": "door-2",
-        "name": "Double porte noire diagonale",
+        "name": "Gris rainures bandes verticales",
         "prompt": (
-            "a modern double-leaf entry door with a dark grey aluminium frame, "
-            "both leaves finished in matte black with a bold diagonal triangular "
-            "design element, multiple horizontal stainless steel inlay strips "
-            "across both panels, and two lever handles with a digital lock in "
-            "the centre"
+            "a modern grey aluminium entry door with a smooth matte finish, "
+            "three thin horizontal recessed grooves evenly spaced across the "
+            "left panel, a vertical band of multiple thin parallel black "
+            "grooved lines on the right side, and a brushed stainless steel "
+            "lever handle with lock cylinder in the centre-right"
         ),
     },
     {
@@ -64,12 +64,13 @@ DOORS = [
     },
     {
         "id": "door-5",
-        "name": "Double porte anthracite",
+        "name": "Anthracite perforé barre",
         "prompt": (
-            "a modern double-leaf (two equal panels) anthracite grey entry "
-            "door, smooth matte finish, with horizontal stainless steel inlay "
-            "strips across both leaves, and two long vertical brushed steel bar "
-            "handles meeting at the centre"
+            "a modern anthracite dark navy entry door with a smooth matte "
+            "finish, two rectangular perforated dot-pattern ventilation panels "
+            "on the right side (one at top, one at bottom), a large vertical "
+            "brushed stainless steel bar handle on the right with an integrated "
+            "smart lock module below it, and concealed hinges on the left"
         ),
     },
     {

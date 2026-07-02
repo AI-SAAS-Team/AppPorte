@@ -10,10 +10,10 @@ export type Door = {
 
 export const DOORS: Door[] = [
   { id: "door-1", name: "Gris vitrage dépoli lignes", preview: "/doors/door-1.png" },
-  { id: "door-2", name: "Double porte noire diagonale", preview: "/doors/door-2.webp" },
+  { id: "door-2", name: "Gris rainures bandes verticales", preview: "/doors/door-2.png" },
   { id: "door-3", name: "Noire bandes vitrées", preview: "/doors/door-3.jpg" },
   { id: "door-4", name: "Anthracite vitrage diagonal", preview: "/doors/door-4.jpg" },
-  { id: "door-5", name: "Double porte anthracite", preview: "/doors/door-5.jpg" },
+  { id: "door-5", name: "Anthracite perforé barre", preview: "/doors/door-5.jpg" },
   { id: "door-6", name: "Chêne clair vitrage vertical", preview: "/doors/door-6.jpg" },
   { id: "door-7", name: "Anthracite vitrage horizontal", preview: "/doors/door-7.jpg" },
   { id: "door-8", name: "Noyer foncé vitré inox", preview: "/doors/door-8.jpg" },
