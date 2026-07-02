@@ -23,7 +23,7 @@ from PIL import Image, UnidentifiedImageError
 from doors import DOORS, get_door, get_reference_image
 from gemini import GeminiError, detect_door_bbox, generate_door_image
 
-load_dotenv()
+load_dotenv(Path(__file__).parent / ".env")
 
 # Taille max d'upload acceptée (50 Mo).
 MAX_UPLOAD_BYTES = 50 * 1024 * 1024
