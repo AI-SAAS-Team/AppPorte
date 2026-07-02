@@ -40,37 +40,9 @@ class GeminiError(Exception):
 
 
 def build_prompt(door_name: str, door_prompt: str) -> str:
-    """Construit l'instruction d'édition envoyée à l'IA.
-
-    Objectif : que l'IA ne modifie QUE la porte et laisse le reste de la photo
-    rigoureusement intact (cadrage, perspective, lumière, pixels alentour).
-    """
     return (
-        "You are a professional architectural photo retoucher. You will edit "
-        "the FIRST image, which is a real photograph of a building facade with "
-        "an existing front entrance door.\n\n"
-        "TASK: replace ONLY the existing entrance door — the door leaf and its "
-        "own glazing/hardware — with a new door described below.\n\n"
-        "ABSOLUTE REQUIREMENTS (very important):\n"
-        "- Return THE SAME photograph: identical framing, crop, zoom, aspect "
-        "ratio, resolution, camera angle and perspective.\n"
-        "- Every pixel that is NOT the door must stay EXACTLY as in the "
-        "original: the surrounding wall, the door frame/casing and threshold, "
-        "the ground, steps, plants, windows, other doors, sky, signage, "
-        "people, reflections — all unchanged.\n"
-        "- Do NOT move, rotate, rescale, recolor, relight or restyle anything "
-        "except the door itself. Do not crop or zoom. Do not add or remove "
-        "objects.\n"
-        "- Keep the door in the exact same position and size as the original "
-        "door opening.\n"
-        "- Match the new door's lighting, shadows, white balance and "
-        "perspective to the original scene so the edit is invisible and "
-        "photorealistic.\n\n"
-        f"NEW DOOR TO PUT: {door_prompt} (style name: \"{door_name}\").\n"
-        "If a SECOND image is provided, copy the door's design, materials and "
-        "colour from it, but IGNORE that reference's background and framing.\n\n"
-        "Output ONLY the edited photograph, with the exact same dimensions as "
-        "the first input image."
+        "Replace the front door in the first image with the door shown in the "
+        "second image. Keep everything else exactly the same."
     )
 
 
