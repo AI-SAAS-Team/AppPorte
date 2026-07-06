@@ -139,35 +139,45 @@ async def generate_door_image(
     if reference_image is not None:
         parts.append(_file_to_part(reference_image))
 
-    payload = {
-        "contents": [{"role": "user", "parts": parts}],
-        "generationConfig": {"responseModalities": ["IMAGE"]},
-    }
-
     url = f"{API_BASE}/models/{MODEL}:generateContent"
     headers = {"x-goog-api-key": api_key, "Content-Type": "application/json"}
 
-    try:
-        async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT) as client:
-            resp = await client.post(url, json=payload, headers=headers)
-    except httpx.TimeoutException as exc:
-        raise GeminiError(
-            "L'IA met trop de temps à répondre (timeout). Réessayez.",
-            status_code=504,
-        ) from exc
-    except httpx.HTTPError as exc:
-        raise GeminiError(
-            f"Impossible de contacter l'API Gemini : {exc}", status_code=502
-        ) from exc
+    last_error: GeminiError | None = None
 
-    if resp.status_code != 200:
-        detail = _extract_error_message(resp)
-        raise GeminiError(
-            f"L'API Gemini a renvoyé une erreur ({resp.status_code}) : {detail}",
-            status_code=502,
-        )
+    for attempt in range(3):
+        payload = {
+            "contents": [{"role": "user", "parts": parts}],
+            "generationConfig": {"responseModalities": ["TEXT", "IMAGE"]},
+        }
 
-    return _extract_image(resp)
+        try:
+            async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT) as client:
+                resp = await client.post(url, json=payload, headers=headers)
+        except httpx.TimeoutException as exc:
+            raise GeminiError(
+                "L'IA met trop de temps à répondre (timeout). Réessayez.",
+                status_code=504,
+            ) from exc
+        except httpx.HTTPError as exc:
+            raise GeminiError(
+                f"Impossible de contacter l'API Gemini : {exc}", status_code=502
+            ) from exc
+
+        if resp.status_code != 200:
+            detail = _extract_error_message(resp)
+            raise GeminiError(
+                f"L'API Gemini a renvoyé une erreur ({resp.status_code}) : {detail}",
+                status_code=502,
+            )
+
+        try:
+            return _extract_image(resp)
+        except GeminiError as exc:
+            last_error = exc
+            # NO_IMAGE → on réessaie jusqu'à 3 fois
+            continue
+
+    raise last_error or GeminiError("L'IA n'a pas pu générer l'image. Réessayez.")
 
 
 async def detect_door_bbox(
