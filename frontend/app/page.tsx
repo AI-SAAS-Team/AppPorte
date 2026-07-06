@@ -156,7 +156,17 @@ export default function Home() {
 
             {error && (
               <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {error}
+                <div className="flex items-start gap-2">
+                  <span className="text-base leading-none">⚠️</span>
+                  <div className="flex-1">
+                    <p className="font-medium">{error}</p>
+                    {error.toLowerCase().includes("porte") && (
+                      <p className="mt-1 text-red-600">
+                        Veuillez utiliser une photo de façade ou d&apos;entrée avec une porte clairement visible.
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 
