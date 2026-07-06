@@ -43,11 +43,13 @@ async def check_image_has_door(user_image: bytes, user_image_mime: str) -> bool:
     """Retourne True si l'image contient une porte d'entrée, False sinon."""
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        return True  # On laisse passer si pas de clé (sera géré plus loin)
+        return True
 
     prompt = (
-        "Does this image show a building or house with a visible front entrance door? "
-        "Answer with a single word: YES or NO."
+        "Look at this image carefully. "
+        "Does it show the exterior of a building, house, or apartment with a clearly visible front entrance door? "
+        "Answer only YES if there is a door. Answer NO for anything else: food, people, interiors, landscapes, cars, animals, etc. "
+        "Reply with a single word: YES or NO."
     )
 
     parts = [
@@ -67,15 +69,17 @@ async def check_image_has_door(user_image: bytes, user_image_mime: str) -> bool:
         async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.post(url, json=payload, headers=headers)
         if resp.status_code != 200:
-            return True  # En cas d'erreur API, on laisse passer
+            return True
         data = resp.json()
         candidates = data.get("candidates") or []
         if not candidates:
-            return True
+            return False
         text = candidates[0]["content"]["parts"][0]["text"].strip().upper()
         return text.startswith("YES")
+    except httpx.HTTPError:
+        return True  # Erreur réseau → on laisse passer
     except Exception:
-        return True  # En cas d'exception réseau, on laisse passer
+        return False  # Réponse inattendue → on bloque
 
 
 def build_prompt(door_name: str, door_prompt: str) -> str:
