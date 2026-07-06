@@ -21,7 +21,7 @@ from fastapi.responses import JSONResponse
 from PIL import Image, UnidentifiedImageError
 
 from doors import DOORS, get_door, get_reference_image
-from gemini import GeminiError, generate_door_image
+from gemini import GeminiError, check_image_has_door, generate_door_image
 
 load_dotenv(Path(__file__).parent / ".env")
 
@@ -153,6 +153,13 @@ async def generate(
         )
 
     user_image, user_mime = _normalize_image(raw)
+
+    has_door = await check_image_has_door(user_image, user_mime)
+    if not has_door:
+        raise HTTPException(
+            status_code=422,
+            detail="Aucune porte d'entrée détectée dans votre photo. Veuillez utiliser une image de façade avec une porte visible.",
+        )
 
     try:
         image_bytes, mime = await generate_door_image(

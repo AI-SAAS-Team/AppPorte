@@ -39,6 +39,45 @@ class GeminiError(Exception):
         self.status_code = status_code
 
 
+async def check_image_has_door(user_image: bytes, user_image_mime: str) -> bool:
+    """Retourne True si l'image contient une porte d'entrée, False sinon."""
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        return True  # On laisse passer si pas de clé (sera géré plus loin)
+
+    prompt = (
+        "Does this image show a building or house with a visible front entrance door? "
+        "Answer with a single word: YES or NO."
+    )
+
+    parts = [
+        {"text": prompt},
+        _bytes_to_part(user_image, user_image_mime),
+    ]
+
+    detection_model = os.getenv("GEMINI_DETECTION_MODEL", "gemini-2.0-flash")
+    payload = {
+        "contents": [{"role": "user", "parts": parts}],
+        "generationConfig": {"responseModalities": ["TEXT"]},
+    }
+    url = f"{API_BASE}/models/{detection_model}:generateContent"
+    headers = {"x-goog-api-key": api_key, "Content-Type": "application/json"}
+
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            resp = await client.post(url, json=payload, headers=headers)
+        if resp.status_code != 200:
+            return True  # En cas d'erreur API, on laisse passer
+        data = resp.json()
+        candidates = data.get("candidates") or []
+        if not candidates:
+            return True
+        text = candidates[0]["content"]["parts"][0]["text"].strip().upper()
+        return text.startswith("YES")
+    except Exception:
+        return True  # En cas d'exception réseau, on laisse passer
+
+
 def build_prompt(door_name: str, door_prompt: str) -> str:
     return (
         "You are a photo editing expert. I will give you two images:\n"
