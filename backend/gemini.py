@@ -174,10 +174,14 @@ async def generate_door_image(
             return _extract_image(resp)
         except GeminiError as exc:
             last_error = exc
-            # NO_IMAGE → on réessaie jusqu'à 3 fois
             continue
 
-    raise last_error or GeminiError("L'IA n'a pas pu générer l'image. Réessayez.")
+    raise GeminiError(
+        "Votre photo ne semble pas contenir de porte d'entrée visible, "
+        "ou l'image est de mauvaise qualité. "
+        "Veuillez utiliser une photo de façade avec une porte clairement visible.",
+        status_code=422,
+    )
 
 
 async def detect_door_bbox(
