@@ -23,7 +23,7 @@ from typing import Optional
 import httpx
 
 # Modèle d'édition/génération d'image de Gemini.
-MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-image")
+MODEL = os.getenv("GEMINI_MODEL", "gemini-3-pro-image-preview")
 API_BASE = "https://generativelanguage.googleapis.com/v1beta"
 
 # Délai max pour l'appel à l'API (la génération d'image peut être lente).
